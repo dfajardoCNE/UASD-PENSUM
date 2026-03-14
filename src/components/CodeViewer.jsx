@@ -1,14 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const escapeHtml = (str) =>
+  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const highlight = (code, lang) => {
+  let out = escapeHtml(code);
+
+  if (lang === 'js') {
+    // comments
+    out = out.replace(/\/\*[\s\S]*?\*\//g, m => `<span class="cm">${m}</span>`);
+    out = out.replace(/\/\/.*$/gm, m => `<span class="cm">${m}</span>`);
+    // strings
+    out = out.replace(/(`[^`]*`|"[^"\\]*"|'[^'\\]*')/g, m => `<span class="str">${m}</span>`);
+    // numbers
+    out = out.replace(/\b(\d+\.?\d*)\b/g, m => `<span class="num">${m}</span>`);
+    // keywords
+    const kw = '\\b(?:const|let|var|function|return|if|else|for|while|switch|case|break|continue|import|from|export|class|new|try|catch|finally|throw)\\b';
+    out = out.replace(new RegExp(kw, 'g'), m => `<span class="kw">${m}</span>`);
+    // simple function names (identifier followed by())
+    out = out.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, m => `<span class="fn">${m}</span>`);
+  }
+
+  if (lang === 'py') {
+    out = out.replace(/#.*$/gm, m => `<span class="cm">${m}</span>`);
+    out = out.replace(/(`[^`]*`|"""[\s\S]*?"""|'''[\s\S]*?'''|"[^"\\]*"|'[^'\\]*')/g, m => `<span class="str">${m}</span>`);
+    out = out.replace(/\b(\d+\.?\d*)\b/g, m => `<span class="num">${m}</span>`);
+    const kwpy = '\\b(?:def|class|return|if|elif|else|for|while|import|from|as|with|try|except|finally|lambda|pass|break|continue|in|is|and|or|not|yield)\\b';
+    out = out.replace(new RegExp(kwpy, 'g'), m => `<span class="kw">${m}</span>`);
+    out = out.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, m => `<span class="fn">${m}</span>`);
+  }
+
+  if (lang === 'sql') {
+    out = out.replace(/--.*$/gm, m => `<span class="cm">${m}</span>`);
+    out = out.replace(/('([^']*)')/g, m => `<span class="str">${m}</span>`);
+    out = out.replace(/\b(\d+\.?\d*)\b/g, m => `<span class="num">${m}</span>`);
+    const kwsql = '\\b(?:SELECT|FROM|WHERE|INSERT|INTO|VALUES|CREATE|TABLE|PRIMARY|KEY|REFERENCES|DEFAULT|NOT|NULL|CHECK|ALTER|ADD|DROP|JOIN|ON|GROUP|BY|ORDER|LIMIT|UNIQUE)\\b';
+    out = out.replace(new RegExp(kwsql, 'gi'), m => `<span class="kw">${m}</span>`);
+  }
+
+  return out;
+};
 
 const CodeViewer = () => {
   const [lang, setLang] = useState('js');
+  const [SyntaxHighlighter, setSyntaxHighlighter] = useState(null);
+  const [prismStyle, setPrismStyle] = useState(null);
 
-  const JS_CODE = (
-    <pre>{`/**
+  useEffect(() => {
+    let mounted = true;
+    // try dynamic import of react-syntax-highlighter + style (Prism). If not installed, ignore.
+    (async () => {
+      try {
+        const [{ Prism }, styleModule] = await Promise.all([
+          import('react-syntax-highlighter'),
+          import('react-syntax-highlighter/dist/esm/styles/prism/vs-dark')
+        ]);
+        if (!mounted) return;
+        // Prism may be undefined depending on package export; fall back to default
+        const SH = Prism || (await import('react-syntax-highlighter/dist/esm/prism')).default;
+        setSyntaxHighlighter(() => SH);
+        setPrismStyle(styleModule.default || styleModule);
+      } catch (e) {
+        // package not available — keep fallback
+        // console.debug('Syntax highlighter not available, using fallback');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const JS_CODE_STR = `/**
  * UASD — Algoritmo de Cálculo de Horas por Crédito
  * Ref: Normativa MESCYT — Crédito Académico Virtual
  * 1 CR presencial = 15 HT | 30 HP | 45 HI
  */
+
+// ── Constantes MESCYT ──────────────────────────────
+const CR_BASE = {
+  HT_POR_CR: 15,   // horas teóricas por crédito
+  HP_POR_CR: 30,   // horas prácticas por crédito
+  HI_POR_CR: 45,   // horas investigación por crédito
+};
+
+// ── Tipos de hora ──────────────────────────────────
+const TIPO_HORA = {
+  HT: 'Horas Teóricas Presenciales',
+  HP: 'Horas Prácticas Presenciales',
+  HIV: 'Horas de Interacción Virtual',
+  HPV: 'Horas Prácticas Virtuales',
+  HI: 'Horas de Investigación',
+};
 
 /**
  * Calcula las horas de una asignatura según su
@@ -40,11 +120,9 @@ function calcularHoras(asignatura, modalidad) {
 
   return resultado;
 }
-`}</pre>
-  );
+`;
 
-  const PY_CODE = (
-    <pre>{`# UASD — Algoritmo de Créditos (Python)
+  const PY_CODE_STR = `# UASD — Algoritmo de Créditos (Python)
 # Conforme normativa MESCYT
 
 from dataclasses import dataclass, field
@@ -85,13 +163,11 @@ def calcular_horas(a: Asignatura, modalidad: Modalidad) -> dict:
         r["HPV"] = a.creditos_HP * CR_BASE["HP"]
         r["HI"]  = a.creditos_HI * CR_BASE["HI"]
 
-    r["total"] = sum(v for k, v in r.items() if k != "total")
+    r["total"] = sum(v for k, v in r.items() if k != "total");
     return r
-`}</pre>
-  );
+`;
 
-  const SQL_CODE = (
-    <pre>{`-- UASD Plataforma Curricular — Schema Base de Datos
+  const SQL_CODE_STR = `-- UASD Plataforma Curricular — Schema Base de Datos
 CREATE TABLE carreras (
   id          SERIAL PRIMARY KEY,
   codigo      VARCHAR(10) UNIQUE NOT NULL,
@@ -119,8 +195,10 @@ CREATE TABLE asignaturas (
   horas_HI    NUMERIC(6,1),
   prerequisito_id INT REFERENCES asignaturas(id)
 );
-`}</pre>
-  );
+`;
+
+  const codeStr = lang === 'js' ? JS_CODE_STR : lang === 'py' ? PY_CODE_STR : SQL_CODE_STR;
+  const langMap = lang === 'js' ? 'javascript' : lang === 'py' ? 'python' : 'sql';
 
   return (
     <div>
@@ -155,7 +233,13 @@ CREATE TABLE asignaturas (
         fontSize: '.78rem', lineHeight: 1.7, overflowX: 'auto',
         color: '#c9d4e8'
       }}>
-        {lang === 'js' ? JS_CODE : lang === 'py' ? PY_CODE : SQL_CODE}
+        {SyntaxHighlighter && prismStyle ? (
+          <SyntaxHighlighter language={langMap} style={prismStyle} showLineNumbers customStyle={{ background: 'transparent', padding: '0.6rem', margin: 0 }}>
+            {codeStr}
+          </SyntaxHighlighter>
+        ) : (
+          <pre dangerouslySetInnerHTML={{ __html: lang === 'js' ? highlight(JS_CODE_STR, 'js') : lang === 'py' ? highlight(PY_CODE_STR, 'py') : highlight(SQL_CODE_STR, 'sql') }} />
+        )}
       </div>
     </div>
   );
