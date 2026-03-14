@@ -3,86 +3,121 @@ import { PENSUM_DATA } from '../data/pensum';
 import { calcularHoras } from '../utils/algorithm';
 
 const PensumTable = () => {
-  const [modal, setModal] = useState('presencial');
   const [carrera, setCarrera] = useState('sistemas');
+  const [modalidad, setModalidad] = useState('presencial');
 
-  const badgeLabels = { presencial: 'badge-pres', semipresencial: 'badge-semi', virtual: 'badge-virt' };
+  const filteredData = PENSUM_DATA.filter(d => d.carrera === carrera);
 
-  let totHT = 0, totHP = 0, totHIV = 0, totHPV = 0, totHI = 0, totCR = 0, totHRS = 0;
+  const calculateTotals = () => {
+    return filteredData.reduce((acc, current) => {
+      const horas = calcularHoras(current, modalidad);
+      acc.HT += horas.HT;
+      acc.HP += horas.HP;
+      acc.HIV += horas.HIV;
+      acc.HPV += horas.HPV;
+      acc.HI += horas.HI;
+      acc.total += horas.total;
+      acc.creditos += (current.creditosHT + current.creditosHP + current.creditosHI);
+      return acc;
+    }, { HT: 0, HP: 0, HIV: 0, HPV: 0, HI: 0, total: 0, creditos: 0 });
+  };
 
-  const rows = PENSUM_DATA.map((a, i) => {
-    const r = calcularHoras(a.cHT, a.cHP, a.cHI, modal);
-    const totalCR = a.cHT + a.cHP + a.cHI;
-    totHT += r.HT; totHP += r.HP; totHIV += r.HIV; totHPV += r.HPV; totHI += r.HI;
-    totCR += totalCR; totHRS += r.total;
-
-    return (
-      <tr key={a.cod} style={{ borderBottom: '1px solid rgba(30, 45, 66, .7)' }}>
-        <td style={{ color: 'var(--muted)', padding: '.55rem .75rem' }}>{i + 1}</td>
-        <td style={{ color: 'var(--accent)', fontSize: '.72rem', padding: '.55rem .75rem' }}>{a.cod}</td>
-        <td style={{ padding: '.55rem .75rem' }}>{a.nom}</td>
-        <td style={{ color: 'var(--muted)', fontSize: '.7rem', padding: '.55rem .75rem' }}>S{a.sem}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{totalCR}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{r.HT || '—'}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{r.HP || '—'}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{r.HIV || '—'}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{r.HPV || '—'}</td>
-        <td style={{ textAlign: 'center', color: 'var(--accent)', padding: '.55rem .75rem' }}>{r.HI || '—'}</td>
-        <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{r.total}</td>
-        <td style={{ padding: '.55rem .75rem' }}>
-          <span className={`badge ${badgeLabels[modal]}`} style={{ fontSize: '.58rem' }}>
-            {modal.substring(0, 4).toUpperCase()}
-          </span>
-        </td>
-      </tr>
-    );
-  });
+  const totals = calculateTotals();
 
   return (
     <div>
+      {/* 02 · Diseños — Pensum Demo */}
       <div className="page-band">
-        <div className="page-title">02 · <span>Diseños</span> — Pensum Demo</div>
-        <div className="page-desc">Vista mockup del plan de estudios con horas por asignatura según modalidad. Filtrable por carrera y modalidad.</div>
+        <div className="page-title">
+          02 · <span>Diseños</span> — Pensum Demo
+        </div>
+        <div className="page-desc">
+          Vista mockup del plan de estudios con horas por asignatura según modalidad. Filtrable por carrera y modalidad.
+        </div>
+        <div className="page-band-decoration">UASD</div>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <select className="form-select" value={carrera} onChange={e => setCarrera(e.target.value)} style={{ width: 'auto', minWidth: '200px' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <select 
+          className="form-select" 
+          value={carrera} 
+          onChange={(e) => setCarrera(e.target.value)}
+          style={{ width: 'auto', minWidth: '200px' }}
+        >
           <option value="sistemas">Ing. en Sistemas</option>
           <option value="administracion">Administración</option>
           <option value="derecho">Derecho</option>
         </select>
-        <select className="form-select" value={modal} onChange={e => setModal(e.target.value)} style={{ width: 'auto', minWidth: '180px' }}>
+
+        <select 
+          className="form-select" 
+          value={modalidad} 
+          onChange={(e) => setModalidad(e.target.value)}
+          style={{ width: 'auto', minWidth: '180px' }}
+        >
           <option value="presencial">Presencial</option>
           <option value="semipresencial">Semipresencial</option>
           <option value="virtual">Virtual</option>
         </select>
-        <div className={`badge ${badgeLabels[modal]}`} style={{ alignSelf: 'center', padding: '.35rem 1rem' }}>
-          {modal.toUpperCase()}
+
+        <div className={`badge badge-${modalidad.substring(0, 4)}`} style={{ alignSelf: 'center', padding: '.35rem 1rem' }}>
+          {modalidad.toUpperCase()}
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table className="pensum-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
+      <div style={{ overflowX: 'auto', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
+        <table className="pensum-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.75rem' }}>
           <thead>
-            <tr style={{ background: 'var(--surface2)', color: 'var(--muted)' }}>
-              {['#', 'Código', 'Asignatura', 'Sem', 'CR', 'HT', 'HP', 'HIV', 'HPV', 'HI', 'Total', 'Modalidad'].map(h => (
-                <th key={h} style={{ padding: '.55rem .75rem', textAlign: 'left', fontSize: '.63rem', textTransform: 'uppercase', letterSpacing: '.1em', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
-                  {h}
-                </th>
-              ))}
+            <tr style={{ background: 'var(--surface2)', color: 'var(--muted)', textAlign: 'left' }}>
+              <th style={{ padding: '.8rem' }}>#</th>
+              <th style={{ padding: '.8rem' }}>Código</th>
+              <th style={{ padding: '.8rem' }}>Asignatura</th>
+              <th style={{ padding: '.8rem' }}>Sem</th>
+              <th style={{ padding: '.8rem' }}>CR</th>
+              <th className="tooltip" data-tip="Horas Teóricas" style={{ padding: '.8rem' }}>HT</th>
+              <th className="tooltip" data-tip="Horas Prácticas" style={{ padding: '.8rem' }}>HP</th>
+              <th className="tooltip" data-tip="Horas Interacción Virtual" style={{ padding: '.8rem' }}>HIV</th>
+              <th className="tooltip" data-tip="Horas Prácticas Virtuales" style={{ padding: '.8rem' }}>HPV</th>
+              <th className="tooltip" data-tip="Horas Investigación" style={{ padding: '.8rem' }}>HI</th>
+              <th style={{ padding: '.8rem' }}>Total hrs</th>
+              <th style={{ padding: '.8rem' }}>Modalidad</th>
             </tr>
           </thead>
-          <tbody>{rows}</tbody>
+          <tbody>
+            {filteredData.map((d, i) => {
+              const h = calcularHoras(d, modalidad);
+              return (
+                <tr key={d.codigo} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '.8rem', color: 'var(--muted)' }}>{i + 1}</td>
+                  <td style={{ padding: '.8rem', fontWeight: 600 }}>{d.codigo}</td>
+                  <td style={{ padding: '.8rem' }}>{d.nombre}</td>
+                  <td style={{ padding: '.8rem' }}>{d.semestre}°</td>
+                  <td style={{ padding: '.8rem', color: 'var(--gold)', fontWeight: 600 }}>
+                    {d.creditosHT + d.creditosHP + d.creditosHI}
+                  </td>
+                  <td style={{ padding: '.8rem' }}>{h.HT || '—'}</td>
+                  <td style={{ padding: '.8rem' }}>{h.HP || '—'}</td>
+                  <td style={{ padding: '.8rem' }}>{h.HIV || '—'}</td>
+                  <td style={{ padding: '.8rem' }}>{h.HPV || '—'}</td>
+                  <td style={{ padding: '.8rem' }}>{h.HI || '—'}</td>
+                  <td style={{ padding: '.8rem', color: 'var(--accent)', fontWeight: 600 }}>{h.total}</td>
+                  <td style={{ padding: '.8rem' }}>
+                    <span className={`badge badge-${modalidad.substring(0, 4)}`}>{modalidad}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
           <tfoot>
-            <tr style={{ background: 'var(--surface2)' }}>
-              <td colSpan="4" style={{ padding: '.55rem .75rem', fontFamily: 'Syne, sans-serif', fontWeight: 700, color: 'var(--gold)' }}>TOTALES</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totCR}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHT || '—'}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHP || '—'}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHIV || '—'}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHPV || '—'}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHI || '—'}</td>
-              <td style={{ textAlign: 'center', color: 'var(--gold)', padding: '.55rem .75rem' }}>{totHRS}</td>
+            <tr style={{ background: 'var(--surface2)', color: 'var(--gold)', fontWeight: 700 }}>
+              <td colSpan="4" style={{ padding: '1rem', textAlign: 'right' }}>TOTALES</td>
+              <td style={{ padding: '1rem' }}>{totals.creditos}</td>
+              <td style={{ padding: '1rem' }}>{totals.HT}</td>
+              <td style={{ padding: '1rem' }}>{totals.HP}</td>
+              <td style={{ padding: '1rem' }}>{totals.HIV}</td>
+              <td style={{ padding: '1rem' }}>{totals.HPV}</td>
+              <td style={{ padding: '1rem' }}>{totals.HI}</td>
+              <td style={{ padding: '1rem', color: 'var(--accent)' }}>{totals.total} hrs</td>
               <td></td>
             </tr>
           </tfoot>

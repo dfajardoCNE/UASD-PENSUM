@@ -1,0 +1,25 @@
+<svg width="204" height="232" viewBox="-102 0 204 232" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#004cd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0036a9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Base Shield -->
+  <path d="M0,231.362L-2.059,230.183C-43.508,206.559 -71.5,178.349 -85.339,146.343C-101.572,108.76 -90.87,59.376 -60.961,33.926C-55.663,28.949 -46.959,23.399 -33.668,16.516C-27.342,13.248 -21.066,10.225 -14.769,7.2C-10.456,5.14 -6.162,3.072 -1.853,0.921L0.016,0L1.856,0.921C6.3,3.131 10.698,5.245 15.1,7.338C21.323,10.321 27.517,13.303 33.769,16.516C47.148,23.399 55.866,28.965 61.259,34.012C91.072,59.413 101.754,108.772 85.532,146.343C71.764,178.257 43.67,206.464 2.065,230.183L0,231.362Z" fill="url(#shieldGrad)"/>
+  
+  <!-- Outer Border (Gold) -->
+  <path d="M0,225L-2,224C-40,201 -65,174 -78,143C-93,107 -83,62 -55,38C-50,34 -42,28 -30,22C-24,19 -18,16 -12,13C-8,11 -4,9 0,7L0,7C4,9 8,11 12,13C18,16 24,19 30,22C42,28 50,34 55,38C83,62 93,107 78,143C65,174 40,201 2,224L0,225Z" fill="none" stroke="#f5c842" stroke-width="4" opacity="0.6"/>
+
+  <!-- Custom Insignia: Book and Flame -->
+  <g transform="translate(-30, 80) scale(0.6)" fill="white">
+     <!-- Simple Book Shape -->
+     <path d="M0,0 L40,0 L40,60 L0,60 Z" opacity="0.8"/>
+     <path d="M45,0 L85,0 L85,60 L45,60 Z" opacity="0.8"/>
+     <rect x="0" y="55" width="85" height="10" rx="2" fill="#f5c842"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="0" y="165" text-anchor="middle" fill="#f5c842" font-family="Syne, sans-serif" font-weight="800" font-size="28">UP</text>
+  <text x="0" y="185" text-anchor="middle" fill="white" font-family="Syne, sans-serif" font-weight="600" font-size="12" opacity="0.7">PLATAFORMA</text>
+</svg>

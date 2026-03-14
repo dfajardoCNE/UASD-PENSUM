@@ -14,6 +14,14 @@ const TestSuite = () => {
       }
     },
     {
+      name: 'CR Presencial — 1 crédito práctico',
+      desc: '1 créd HP en presencial → 30 HP, total=30',
+      fn: () => {
+        const r = calcularHoras(0, 1, 0, 'presencial');
+        return r.HP === 30 && r.total === 30;
+      }
+    },
+    {
       name: 'CR Virtual — 2HT+1HP → solo HIV+HPV',
       desc: 'Virtual no debe tener HT ni HP físicas',
       fn: () => {
@@ -22,13 +30,47 @@ const TestSuite = () => {
       }
     },
     {
+      name: 'CR Semipresencial — distribución 50/50',
+      desc: '2 créd HT semi → 15 HT + 15 HIV',
+      fn: () => {
+        const r = calcularHoras(2, 0, 0, 'semipresencial');
+        return r.HT === 15 && r.HIV === 15 && r.HP === 0;
+      }
+    },
+    {
       name: 'Total horas — suma coherente',
-      desc: 'total == HT+HP+HIV+HPV+HI',
+      desc: 'total == HT+HP+HIV+HPV+HI para cualquier combinación',
       fn: () => {
         const r = calcularHoras(2, 1, 1, 'semipresencial');
         return r.total === r.HT + r.HP + r.HIV + r.HPV + r.HI;
       }
-    }
+    },
+    {
+      name: 'HI — igual en todas las modalidades',
+      desc: '1 créd HI → 45 HI independiente de la modalidad',
+      fn: () => {
+        const rP = calcularHoras(0, 0, 1, 'presencial');
+        const rS = calcularHoras(0, 0, 1, 'semipresencial');
+        const rV = calcularHoras(0, 0, 1, 'virtual');
+        return rP.HI === 45 && rS.HI === 45 && rV.HI === 45;
+      }
+    },
+    {
+      name: 'Créditos cero — resultado cero',
+      desc: '0 créditos en cualquier modalidad → todo 0',
+      fn: () => {
+        const r = calcularHoras(0, 0, 0, 'virtual');
+        return r.total === 0;
+      }
+    },
+    {
+      name: 'Virtual — sin horas presenciales',
+      desc: 'Modalidad virtual nunca debe tener HT ni HP',
+      fn: () => {
+        const r = calcularHoras(3, 2, 1, 'virtual');
+        return r.HT === 0 && r.HP === 0;
+      }
+    },
   ];
 
   const handleRun = () => {
@@ -43,9 +85,11 @@ const TestSuite = () => {
 
   return (
     <div>
+      {/* 04 · Pruebas — Suite de Tests */}
       <div className="page-band">
         <div className="page-title">04 · <span>Pruebas</span> — Suite de Tests</div>
         <div className="page-desc">Casos de prueba unitarios para el algoritmo de cálculo de horas/créditos.</div>
+        <div className="page-band-decoration">UASD</div>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>

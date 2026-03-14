@@ -22,17 +22,7 @@ const Header = ({ activeTab, onTabChange }) => {
       height: '64px'
     }}>
       <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-        <div className="logo-badge" style={{
-          width: '36px', height: '36px',
-          background: 'linear-gradient(135deg, var(--accent), #0055aa)',
-          borderRadius: '8px',
-          display: 'grid', placeItems: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '.8rem',
-          color: '#fff', letterSpacing: '-.5px',
-          lineHeight: 1
-        }}>
-          UA<br />SD
-        </div>
+        <img src="/logo.svg" alt="UASD Logo" style={{ width: '42px', height: '42px' }} />
         <div>
           <div className="logo-text" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1rem' }}>Plataforma Curricular</div>
           <div className="logo-sub" style={{ color: 'var(--muted)', fontSize: '.7rem', marginTop: '1px' }}>Diseño y Gestión de Planes de Estudio</div>
