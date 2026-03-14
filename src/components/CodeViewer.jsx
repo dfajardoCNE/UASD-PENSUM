@@ -102,9 +102,9 @@ Modalidad = Literal[<span className="str">"presencial"</span>, <span className="
         r[<span className="str">"HI"</span>]  = a.creditos_HI * CR_BASE[<span class="str">"HI"</span>]
 
     <span className="kw">elif</span> modalidad == <span className="str">"virtual"</span>:
-        r[<span className="str">"HIV"</span>] = a.creditos_HT * CR_BASE[<span class="str">"HT"</span>]
-        r[<span className="str">"HPV"</span>] = a.creditos_HP * CR_BASE[<span class="str">"HP"</span>]
-        r[<span className="str">"HI"</span>]  = a.creditos_HI * CR_BASE[<span class="str">"HI"</span>]
+        r[<span className="str">"HIV"</span>] = a.creditos_HT * CR_BASE[<span className="str">"HT"</span>]
+        r[<span className="str">"HPV"</span>] = a.creditos_HP * CR_BASE[<span className="str">"HP"</span>]
+        r[<span className="str">"HI"</span>]  = a.creditos_HI * CR_BASE[<span className="str">"HI"</span>]
 
     r[<span className="str">"total"</span>] = <span className="fn">sum</span>(v <span className="kw">for</span> k, v <span className="kw">in</span> r.items() <span className="kw">if</span> k != <span className="str">"total"</span>)
     <span className="kw">return</span> r
@@ -172,7 +172,7 @@ Modalidad = Literal[<span className="str">"presencial"</span>, <span className="
         ))}
       </div>
 
-      <div className="code-container" style={{
+      <div className="code-container code-block" style={{
         background: 'var(--surface2)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius)', padding: '1.25rem',
         fontSize: '.78rem', lineHeight: 1.7, overflowX: 'auto',

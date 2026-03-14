@@ -3,6 +3,7 @@ import { calcularHoras } from '../utils/algorithm';
 
 const TestSuite = () => {
   const [results, setResults] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const TEST_CASES = [
     {
@@ -74,10 +75,16 @@ const TestSuite = () => {
   ];
 
   const handleRun = () => {
-    const res = TEST_CASES.map(t => {
-      try { return t.fn(); } catch { return false; }
-    });
-    setResults(res);
+    setIsRunning(true);
+    setResults(null);
+    // allow UI to update so spinner is visible
+    setTimeout(() => {
+      const res = TEST_CASES.map(t => {
+        try { return t.fn(); } catch { return false; }
+      });
+      setResults(res);
+      setIsRunning(false);
+    }, 150);
   };
 
   const passCount = results ? results.filter(r => r).length : 0;
@@ -96,9 +103,20 @@ const TestSuite = () => {
         <button
           className="btn-calc"
           onClick={handleRun}
-          style={{ width: 'auto', padding: '.55rem 1.4rem' }}
+          disabled={isRunning}
+          title="Ejecutar la suite de pruebas unitarias"
         >
-          ▶ Ejecutar Tests
+          {isRunning ? (
+            <>
+              <span className="spinner" aria-hidden="true"></span>
+              Ejecutando...
+            </>
+          ) : (
+            <>
+              <span className="btn-icon">▶</span>
+              Ejecutar Tests
+            </>
+          )}
         </button>
         <div style={{ fontSize: '.8rem', color: 'var(--muted)' }}>
           {results ? (

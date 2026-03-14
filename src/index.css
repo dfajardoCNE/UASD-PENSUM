@@ -89,25 +89,62 @@ body::before {
   transition: width .6s ease;
 }
 
-.tooltip {
-  position: relative;
-  display: inline-block;
+/* Custom scrollbar */
+*::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0,200,255,.18), rgba(245,200,66,.14));
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-.tooltip:hover::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: .65rem;
-  padding: .35rem .6rem;
-  z-index: 200;
-  pointer-events: none;
+/* Code block wrapping so code lines don't appear single-line */
+.code-block pre {
+  white-space: pre-wrap; /* allow wrapping */
+  word-break: break-word;
 }
+
+/* also for the inline code in CodeViewer */
+.code-container { font-family: 'DM Mono', monospace; }
+
+/* TestSuite button personalization */
+.btn-calc {
+  background: linear-gradient(90deg, rgba(127,255,107,.08), rgba(0,200,255,.06));
+  border: 1px solid rgba(127,255,107,.12);
+  color: var(--text);
+  padding: .5rem .9rem;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.btn-calc:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-icon { display: inline-block; transform: translateY(-1px); color: var(--accent); font-weight: 900; }
+
+/* simple spinner */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.08);
+  border-top-color: var(--accent3);
+  animation: spin 1s linear infinite;
+  margin-right: .35rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Page Band Styles */
 .page-band {

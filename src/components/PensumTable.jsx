@@ -3,10 +3,10 @@ import { PENSUM_DATA } from '../data/pensum';
 import { calcularHoras } from '../utils/algorithm';
 
 const PensumTable = () => {
-  const [carrera, setCarrera] = useState('sistemas');
   const [modalidad, setModalidad] = useState('presencial');
 
-  const filteredData = PENSUM_DATA.filter(d => d.carrera === carrera);
+  // PENSUM_DATA demo doesn't include a `carrera` field — show the demo list directly
+  const filteredData = PENSUM_DATA;
 
   const calculateTotals = () => {
     return filteredData.reduce((acc, current) => {
@@ -17,7 +17,8 @@ const PensumTable = () => {
       acc.HPV += horas.HPV;
       acc.HI += horas.HI;
       acc.total += horas.total;
-      acc.creditos += (current.creditosHT + current.creditosHP + current.creditosHI);
+      // data uses cHT/cHP/cHI
+      acc.creditos += (Number(current.cHT || 0) + Number(current.cHP || 0) + Number(current.cHI || 0));
       return acc;
     }, { HT: 0, HP: 0, HIV: 0, HPV: 0, HI: 0, total: 0, creditos: 0 });
   };
@@ -40,8 +41,8 @@ const PensumTable = () => {
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <select 
           className="form-select" 
-          value={carrera} 
-          onChange={(e) => setCarrera(e.target.value)}
+          value={'sistemas'} 
+          onChange={() => {}}
           style={{ width: 'auto', minWidth: '200px' }}
         >
           <option value="sistemas">Ing. en Sistemas</option>
@@ -89,11 +90,11 @@ const PensumTable = () => {
               return (
                 <tr key={d.codigo} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '.8rem', color: 'var(--muted)' }}>{i + 1}</td>
-                  <td style={{ padding: '.8rem', fontWeight: 600 }}>{d.codigo}</td>
-                  <td style={{ padding: '.8rem' }}>{d.nombre}</td>
-                  <td style={{ padding: '.8rem' }}>{d.semestre}°</td>
+                  <td style={{ padding: '.8rem', fontWeight: 600 }}>{d.cod}</td>
+                  <td style={{ padding: '.8rem' }}>{d.nom}</td>
+                  <td style={{ padding: '.8rem' }}>{d.sem}°</td>
                   <td style={{ padding: '.8rem', color: 'var(--gold)', fontWeight: 600 }}>
-                    {d.creditosHT + d.creditosHP + d.creditosHI}
+                    {Number(d.cHT || 0) + Number(d.cHP || 0) + Number(d.cHI || 0)}
                   </td>
                   <td style={{ padding: '.8rem' }}>{h.HT || '—'}</td>
                   <td style={{ padding: '.8rem' }}>{h.HP || '—'}</td>

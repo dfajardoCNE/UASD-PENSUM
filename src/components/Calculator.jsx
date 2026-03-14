@@ -105,8 +105,8 @@ const Calculator = () => {
             </thead>
             <tbody>
               {['HT', 'HP', 'HIV', 'HPV', 'HI'].map(k => {
-                if (result[k] === 0) return null;
-                const pct = Math.round(result[k] / result.total * 100);
+                if (!result[k]) return null; // hide zeros and undefined
+                const pct = result.total ? Math.round(result[k] / result.total * 100) : 0;
                 return (
                   <tr key={k}>
                     <td style={{ color: colors[k], padding: '.6rem .8rem', borderBottom: '1px solid var(--border)' }}>{k}</td>
