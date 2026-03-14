@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UASD — Plataforma Carreras & Pensum</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d42;
+    --accent: #00c8ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --text: #e8edf5;
+    --muted: #6b7d96;
+    --gold: #f5c842;
+    --radius: 12px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position:sticky; top:0; z-index:100;
+    background: rgba(10,14,23,.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display:flex; align-items:center; gap:.75rem;
+  }
+  .logo-badge {
+    width:36px; height:36px;
+    background: linear-gradient(135deg, var(--accent), #0055aa);
+    border-radius:8px;
+    display:grid; place-items:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.8rem;
+    color:#fff; letter-spacing:-.5px;
+  }
+  .logo-text { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; }
+  .logo-sub { color:var(--muted); font-size:.7rem; margin-top:1px; }
+
+  nav { display:flex; gap:.25rem; }
+  .nav-btn {
+    background:none; border:none; color:var(--muted);
+    font-family:'DM Mono',monospace; font-size:.75rem;
+    padding:.5rem .9rem; border-radius:8px; cursor:pointer;
+    transition: all .2s; letter-spacing:.05em;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .nav-btn.active { color: var(--accent); }
+
+  /* ── MAIN ── */
+  main {
+    position:relative; z-index:1;
+    max-width:1280px; margin:0 auto;
+    padding: 2rem;
+  }
+
+  /* ── PAGE TITLE BAND ── */
+  .page-band {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    position:relative; overflow:hidden;
+  }
+  .page-band::after {
+    content:'UASD';
+    position:absolute; right:-20px; top:-20px;
+    font-family:'Syne',sans-serif; font-size:8rem; font-weight:800;
+    color: rgba(0,200,255,.04);
+    pointer-events:none;
+  }
+  .page-title {
+    font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800;
+    letter-spacing:-.03em; margin-bottom:.3rem;
+  }
+  .page-title span { color: var(--accent); }
+  .page-desc { color: var(--muted); font-size:.8rem; line-height:1.6; max-width:600px; }
+
+  /* ── TAB SECTIONS ── */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* ── CARD GRID ── */
+  .card-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap:1.5rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .card-header {
+    display:flex; align-items:center; gap:.75rem;
+    margin-bottom:1rem;
+  }
+  .card-icon {
+    width:40px; height:40px; border-radius:10px;
+    display:grid; place-items:center; font-size:1.1rem;
+    flex-shrink:0;
+  }
+  .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; }
+  .card-subtitle { color:var(--muted); font-size:.7rem; margin-top:2px; }
+
+  /* ── ALGORITHM CALCULATOR ── */
+  .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media(max-width:800px){ .calc-grid { grid-template-columns:1fr; } }
+
+  .calc-panel {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:1.75rem;
+  }
+  .calc-panel h3 {
+    font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+    margin-bottom:1.25rem; color:var(--accent);
+  }
+
+  .form-row { margin-bottom:1rem; }
+  .form-label {
+    display:block; font-size:.7rem; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:.4rem;
+  }
+  .form-input, .form-select {
+    width:100%; padding:.6rem .9rem;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; color:var(--text);
+    font-family:'DM Mono',monospace; font-size:.85rem;
+    outline:none; transition:border-color .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color:var(--accent); }
+  .form-select option { background:var(--surface2); }
+
+  .btn-calc {
+    width:100%; padding:.75rem;
+    background: linear-gradient(135deg, var(--accent), #0077cc);
+    border:none; border-radius:8px;
+    color:#fff; font-family:'Syne',sans-serif; font-weight:700;
+    font-size:.85rem; cursor:pointer; letter-spacing:.05em;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-calc:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-calc:active { transform:translateY(0); }
+
+  /* ── RESULTS TABLE ── */
+  .result-table {
+    width:100%; border-collapse:collapse;
+    font-size:.8rem; margin-top:1rem;
+  }
+  .result-table th {
+    background:var(--surface2); color:var(--muted);
+    padding:.6rem .8rem; text-align:left;
+    font-size:.65rem; text-transform:uppercase; letter-spacing:.1em;
+    border-bottom:1px solid var(--border);
+  }
+  .result-table td {
+    padding:.6rem .8rem; border-bottom:1px solid var(--border);
+  }
+  .result-table tr:last-child td { border-bottom:none; }
+  .result-table td.val { color:var(--accent); font-weight:500; text-align:right; }
+  .result-table tr.total td { color:var(--gold); font-weight:600; }
+
+  /* ── DIAGRAM SVG AREA ── */
+  .diagram-wrap {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:1.5rem;
+    overflow-x:auto;
+  }
+  .diagram-wrap h3 {
+    font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;
+    color:var(--accent2); margin-bottom:1.25rem;
+  }
+
+  svg.diagram { width:100%; max-width:900px; display:block; margin:0 auto; }
+
+  /* SVG node styles */
+  .node-rect { rx:8; ry:8; }
+  .node-text { font-family:'DM Mono',monospace; font-size:11px; fill:#e8edf5; }
+  .node-label { font-family:'Syne',sans-serif; font-size:10px; font-weight:700; fill:#6b7d96; letter-spacing:.08em; }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:1.25rem;
+    font-size:.78rem; line-height:1.7; overflow-x:auto;
+    color:#c9d4e8;
+  }
+  .kw { color:#00c8ff; }
+  .fn { color:#7fff6b; }
+  .str { color:#f5c842; }
+  .cm { color:#4a5a72; font-style:italic; }
+  .num { color:#ff6b35; }
+
+  .code-tabs { display:flex; gap:.5rem; margin-bottom:1rem; }
+  .code-tab {
+    background:none; border:1px solid var(--border);
+    color:var(--muted); font-family:'DM Mono',monospace; font-size:.72rem;
+    padding:.35rem .8rem; border-radius:6px; cursor:pointer;
+    transition:all .2s;
+  }
+  .code-tab.active { background:var(--surface2); color:var(--accent); border-color:var(--accent); }
+
+  /* ── TEST PANEL ── */
+  .test-suite { display:flex; flex-direction:column; gap:.75rem; }
+  .test-case {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:1.1rem 1.25rem;
+    display:flex; align-items:flex-start; gap:1rem;
+    transition:border-color .2s;
+  }
+  .test-case.pass { border-left:3px solid var(--accent3); }
+  .test-case.fail { border-left:3px solid #ff4444; }
+  .test-case.pending { border-left:3px solid var(--gold); }
+
+  .test-status {
+    font-size:1rem; flex-shrink:0; margin-top:2px;
+  }
+  .test-name { font-family:'Syne',sans-serif; font-weight:600; font-size:.85rem; }
+  .test-desc { font-size:.72rem; color:var(--muted); margin-top:.25rem; line-height:1.5; }
+  .test-result {
+    margin-top:.5rem; font-size:.72rem;
+    background:var(--surface2); border-radius:6px; padding:.4rem .7rem;
+    color:var(--accent3);
+  }
+  .test-result.fail-msg { color:#ff6b6b; }
+
+  /* ── MODALIDAD BADGE ── */
+  .badge {
+    display:inline-block; padding:.2rem .6rem;
+    border-radius:4px; font-size:.65rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:.07em;
+  }
+  .badge-pres { background:rgba(127,255,107,.15); color:var(--accent3); }
+  .badge-semi { background:rgba(245,200,66,.15); color:var(--gold); }
+  .badge-virt { background:rgba(0,200,255,.15); color:var(--accent); }
+
+  /* ── PENSUM TABLE ── */
+  .pensum-table {
+    width:100%; border-collapse:collapse; font-size:.78rem;
+  }
+  .pensum-table th {
+    background:var(--surface2); color:var(--muted);
+    padding:.55rem .75rem; text-align:left;
+    font-size:.63rem; text-transform:uppercase; letter-spacing:.1em;
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  .pensum-table td { padding:.55rem .75rem; border-bottom:1px solid rgba(30,45,66,.7); }
+  .pensum-table tr:hover td { background:rgba(0,200,255,.04); }
+  .pensum-table .num-cell { text-align:center; color:var(--accent); }
+  .pensum-table .semestre { color:var(--muted); font-size:.7rem; }
+
+  /* ── TOOLTIP ── */
+  .tooltip {
+    position:relative; display:inline-block;
+  }
+  .tooltip:hover::after {
+    content:attr(data-tip);
+    position:absolute; bottom:110%; left:50%; transform:translateX(-50%);
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--text); font-size:.65rem; padding:.35rem .6rem;
+    border-radius:6px; white-space:nowrap; z-index:200;
+    pointer-events:none;
+  }
+
+  /* ── SUMMARY CHIPS ── */
+  .chips { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem; }
+  .chip {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:20px; padding:.3rem .8rem;
+    font-size:.72rem;
+  }
+  .chip span { color:var(--accent); font-weight:500; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height:6px; background:var(--surface2); border-radius:3px; margin:.5rem 0;
+    overflow:hidden;
+  }
+  .progress-fill {
+    height:100%; border-radius:3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition:width .6s ease;
+  }
+
+  /* responsive */
+  @media(max-width:600px){
+    header { padding:0 1rem; }
+    main { padding:1rem; }
+    nav { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">UA<br>SD</div>
+    <div>
+      <div class="logo-text">Plataforma Curricular</div>
+      <div class="logo-sub">Diseño y Gestión de Planes de Estudio</div>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="showTab('diagramas')">01 · Diagramas</button>
+    <button class="nav-btn" onclick="showTab('disenos')">02 · Diseños</button>
+    <button class="nav-btn" onclick="showTab('codigos')">03 · Códigos</button>
+    <button class="nav-btn" onclick="showTab('pruebas')">04 · Pruebas</button>
+    <button class="nav-btn" onclick="showTab('calc')">∑ Calculadora</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ═══════════════════════════════ 01 DIAGRAMAS ═══════════════════════════════ -->
+  <section class="section active" id="tab-diagramas">
+    <div class="page-band">
+      <div class="page-title">01 · <span>Diagramas</span> del Sistema</div>
+      <div class="page-desc">Ciclo de vida del sistema UASD — desde la propuesta curricular hasta la aprobación y gestión del pensum activo.</div>
+    </div>
+
+    <!-- Diagrama 1: Flujo general -->
+    <div class="diagram-wrap" style="margin-bottom:1.5rem">
+      <h3>▶ Ciclo de Vida del Plan de Estudio</h3>
+      <svg class="diagram" viewBox="0 0 860 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#00c8ff" opacity=".7"/>
+          </marker>
+        </defs>
+        <!-- nodes -->
+        <rect x="10" y="80" width="110" height="60" rx="8" fill="#111827" stroke="#1e2d42" stroke-width="1.5"/>
+        <text x="65" y="105" text-anchor="middle" class="node-text" font-size="10">Facultad</text>
+        <text x="65" y="122" text-anchor="middle" class="node-text" font-size="10">Propone</text>
+
+        <rect x="155" y="80" width="120" height="60" rx="8" fill="#111827" stroke="#00c8ff" stroke-width="1.5"/>
+        <text x="215" y="105" text-anchor="middle" class="node-text" font-size="10">Plataforma</text>
+        <text x="215" y="122" text-anchor="middle" class="node-text" font-size="10">Recepción</text>
+
+        <rect x="310" y="80" width="120" height="60" rx="8" fill="#111827" stroke="#1e2d42" stroke-width="1.5"/>
+        <text x="370" y="105" text-anchor="middle" class="node-text" font-size="10">Comisión</text>
+        <text x="370" y="122" text-anchor="middle" class="node-text" font-size="10">Evaluación</text>
+
+        <rect x="465" y="20" width="110" height="50" rx="8" fill="#1a2235" stroke="#f5c842" stroke-width="1.5"/>
+        <text x="520" y="43" text-anchor="middle" class="node-text" font-size="10" fill="#f5c842">Devuelto</text>
+        <text x="520" y="58" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">con Obs.</text>
+
+        <rect x="465" y="140" width="110" height="50" rx="8" fill="#1a2235" stroke="#7fff6b" stroke-width="1.5"/>
+        <text x="520" y="162" text-anchor="middle" class="node-text" font-size="10" fill="#7fff6b">Aprobado</text>
+        <text x="520" y="178" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">por Consejo</text>
+
+        <rect x="620" y="140" width="120" height="50" rx="8" fill="#111827" stroke="#00c8ff" stroke-width="1.5"/>
+        <text x="680" y="162" text-anchor="middle" class="node-text" font-size="10">Registro</text>
+        <text x="680" y="178" text-anchor="middle" class="node-text" font-size="10">Pensum</text>
+
+        <rect x="775" y="140" width="75" height="50" rx="8" fill="#111827" stroke="#ff6b35" stroke-width="1.5"/>
+        <text x="812" y="162" text-anchor="middle" class="node-text" font-size="10" fill="#ff6b35">Activo</text>
+        <text x="812" y="178" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">en LMS</text>
+
+        <!-- arrows -->
+        <line x1="120" y1="110" x2="153" y2="110" stroke="#00c8ff" stroke-width="1.5" opacity=".6" marker-end="url(#arr)"/>
+        <line x1="275" y1="110" x2="308" y2="110" stroke="#00c8ff" stroke-width="1.5" opacity=".6" marker-end="url(#arr)"/>
+        <line x1="430" y1="90" x2="463" y2="50" stroke="#f5c842" stroke-width="1.5" opacity=".7" marker-end="url(#arr)"/>
+        <line x1="430" y1="130" x2="463" y2="160" stroke="#7fff6b" stroke-width="1.5" opacity=".7" marker-end="url(#arr)"/>
+        <!-- feedback loop -->
+        <path d="M520 20 Q520 5 215 5 Q215 78" fill="none" stroke="#f5c842" stroke-width="1" stroke-dasharray="4,3" opacity=".5" marker-end="url(#arr)"/>
+
+        <line x1="575" y1="165" x2="618" y2="165" stroke="#00c8ff" stroke-width="1.5" opacity=".6" marker-end="url(#arr)"/>
+        <line x1="740" y1="165" x2="773" y2="165" stroke="#00c8ff" stroke-width="1.5" opacity=".6" marker-end="url(#arr)"/>
+
+        <!-- step labels -->
+        <text x="65" y="75" text-anchor="middle" class="node-label">PASO 1</text>
+        <text x="215" y="75" text-anchor="middle" class="node-label">PASO 2</text>
+        <text x="370" y="75" text-anchor="middle" class="node-label">PASO 3</text>
+        <text x="680" y="135" text-anchor="middle" class="node-label">PASO 4</text>
+        <text x="812" y="135" text-anchor="middle" class="node-label">PASO 5</text>
+      </svg>
+    </div>
+
+    <!-- Diagrama 2: Modalidades -->
+    <div class="diagram-wrap">
+      <h3>▶ Árbol de Modalidades y Tipos de Horas</h3>
+      <svg class="diagram" viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr2" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+            <polygon points="0 0, 7 2.5, 0 5" fill="#6b7d96" opacity=".8"/>
+          </marker>
+        </defs>
+        <!-- Root -->
+        <rect x="330" y="10" width="200" height="48" rx="8" fill="#1a2235" stroke="#00c8ff" stroke-width="2"/>
+        <text x="430" y="32" text-anchor="middle" class="node-text" font-size="12" font-weight="600">Crédito Académico</text>
+        <text x="430" y="50" text-anchor="middle" class="node-text" font-size="10" fill="#6b7d96">1 CR = 15 HT / 30 HP / 45 HI</text>
+
+        <!-- Modalidades -->
+        <rect x="50" y="100" width="150" height="44" rx="8" fill="#111827" stroke="#7fff6b" stroke-width="1.5"/>
+        <text x="125" y="122" text-anchor="middle" class="node-text" font-size="11" fill="#7fff6b">Presencial</text>
+        <text x="125" y="138" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">HT + HP</text>
+
+        <rect x="330" y="100" width="150" height="44" rx="8" fill="#111827" stroke="#f5c842" stroke-width="1.5"/>
+        <text x="405" y="122" text-anchor="middle" class="node-text" font-size="11" fill="#f5c842">Semipresencial</text>
+        <text x="405" y="138" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">HT + HP + HIV + HI</text>
+
+        <rect x="620" y="100" width="150" height="44" rx="8" fill="#111827" stroke="#00c8ff" stroke-width="1.5"/>
+        <text x="695" y="122" text-anchor="middle" class="node-text" font-size="11" fill="#00c8ff">Virtual</text>
+        <text x="695" y="138" text-anchor="middle" class="node-text" font-size="9" fill="#6b7d96">HIV + HPV + HI</text>
+
+        <!-- Lines root→modal -->
+        <line x1="430" y1="58" x2="125" y2="98" stroke="#6b7d96" stroke-width="1" marker-end="url(#arr2)"/>
+        <line x1="430" y1="58" x2="405" y2="98" stroke="#6b7d96" stroke-width="1" marker-end="url(#arr2)"/>
+        <line x1="430" y1="58" x2="695" y2="98" stroke="#6b7d96" stroke-width="1" marker-end="url(#arr2)"/>
+
+        <!-- Sub-nodes PRESENCIAL -->
+        <rect x="10" y="190" width="115" height="38" rx="6" fill="#1a2235" stroke="#7fff6b" stroke-width="1" opacity=".8"/>
+        <text x="67" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#7fff6b">HT</text>
+        <text x="67" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Teóricas Presenc.</text>
+
+        <rect x="135" y="190" width="115" height="38" rx="6" fill="#1a2235" stroke="#7fff6b" stroke-width="1" opacity=".8"/>
+        <text x="192" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#7fff6b">HP</text>
+        <text x="192" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Prácts. Presenc.</text>
+
+        <!-- Sub-nodes SEMI -->
+        <rect x="250" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#f5c842" stroke-width="1" opacity=".8"/>
+        <text x="290" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#f5c842">HT+HP</text>
+        <text x="290" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Presenciales</text>
+
+        <rect x="340" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#f5c842" stroke-width="1" opacity=".8"/>
+        <text x="380" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#f5c842">HIV</text>
+        <text x="380" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Interac. Virtual</text>
+
+        <rect x="430" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#f5c842" stroke-width="1" opacity=".8"/>
+        <text x="470" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#f5c842">HI</text>
+        <text x="470" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Investigación</text>
+
+        <!-- Sub-nodes VIRTUAL -->
+        <rect x="560" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#00c8ff" stroke-width="1" opacity=".8"/>
+        <text x="600" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#00c8ff">HIV</text>
+        <text x="600" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Sinc./Asinc.</text>
+
+        <rect x="650" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#00c8ff" stroke-width="1" opacity=".8"/>
+        <text x="690" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#00c8ff">HPV</text>
+        <text x="690" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Labs Virtuales</text>
+
+        <rect x="740" y="190" width="80" height="38" rx="6" fill="#1a2235" stroke="#00c8ff" stroke-width="1" opacity=".8"/>
+        <text x="780" y="209" text-anchor="middle" class="node-text" font-size="9" fill="#00c8ff">HI</text>
+        <text x="780" y="222" text-anchor="middle" class="node-text" font-size="8" fill="#6b7d96">Investigación</text>
+
+        <!-- lines modal→sub -->
+        <line x1="125" y1="144" x2="67" y2="188" stroke="#7fff6b" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="125" y1="144" x2="192" y2="188" stroke="#7fff6b" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="405" y1="144" x2="290" y2="188" stroke="#f5c842" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="405" y1="144" x2="380" y2="188" stroke="#f5c842" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="405" y1="144" x2="470" y2="188" stroke="#f5c842" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="695" y1="144" x2="600" y2="188" stroke="#00c8ff" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="695" y1="144" x2="690" y2="188" stroke="#00c8ff" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+        <line x1="695" y1="144" x2="780" y2="188" stroke="#00c8ff" stroke-width="1" opacity=".5" marker-end="url(#arr2)"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ 02 DISEÑOS ═══════════════════════════════ -->
+  <section class="section" id="tab-disenos">
+    <div class="page-band">
+      <div class="page-title">02 · <span>Diseños</span> — Pensum Demo</div>
+      <div class="page-desc">Vista mockup del plan de estudios con horas por asignatura según modalidad. Filtrable por carrera y modalidad.</div>
+    </div>
+
+    <div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <select class="form-select" id="sel-carrera" style="width:auto; min-width:200px;" onchange="filterPensum()">
+        <option value="sistemas">Ing. en Sistemas</option>
+        <option value="administracion">Administración</option>
+        <option value="derecho">Derecho</option>
+      </select>
+      <select class="form-select" id="sel-modal" style="width:auto; min-width:180px;" onchange="filterPensum()">
+        <option value="presencial">Presencial</option>
+        <option value="semipresencial">Semipresencial</option>
+        <option value="virtual">Virtual</option>
+      </select>
+      <div id="modal-badge" class="badge badge-pres" style="align-self:center; padding:.35rem 1rem;">PRESENCIAL</div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="pensum-table" id="pensum-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Código</th>
+            <th>Asignatura</th>
+            <th>Sem</th>
+            <th>CR</th>
+            <th class="tooltip" data-tip="Horas Teóricas">HT</th>
+            <th class="tooltip" data-tip="Horas Prácticas">HP</th>
+            <th class="tooltip" data-tip="Horas Interacción Virtual">HIV</th>
+            <th class="tooltip" data-tip="Horas Prácticas Virtuales">HPV</th>
+            <th class="tooltip" data-tip="Horas Investigación">HI</th>
+            <th>Total hrs</th>
+            <th>Modalidad</th>
+          </tr>
+        </thead>
+        <tbody id="pensum-body"></tbody>
+        <tfoot id="pensum-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ 03 CÓDIGOS ═══════════════════════════════ -->
+  <section class="section" id="tab-codigos">
+    <div class="page-band">
+      <div class="page-title">03 · <span>Códigos</span> — Algoritmo de Créditos</div>
+      <div class="page-desc">Implementación del algoritmo para calcular horas de acuerdo al crédito según modalidad (presencial, semipresencial, virtual).</div>
+    </div>
+
+    <div class="code-tabs">
+      <button class="code-tab active" onclick="showCode('js')">JavaScript</button>
+      <button class="code-tab" onclick="showCode('py')">Python</button>
+      <button class="code-tab" onclick="showCode('sql')">SQL Schema</button>
+    </div>
+
+    <div id="code-js">
+<pre><span class="cm">/**
+ * UASD — Algoritmo de Cálculo de Horas por Crédito
+ * Ref: Normativa MESCYT — Crédito Académico Virtual
+ * 1 CR presencial = 15 HT | 30 HP | 45 HI
+ */</span>
+
+<span class="cm">// ── Constantes MESCYT ──────────────────────────────</span>
+<span class="kw">const</span> <span class="fn">CR_BASE</span> = {
+  HT_POR_CR: <span class="num">15</span>,   <span class="cm">// horas teóricas por crédito</span>
+  HP_POR_CR: <span class="num">30</span>,   <span class="cm">// horas prácticas por crédito</span>
+  HI_POR_CR: <span class="num">45</span>,   <span class="cm">// horas investigación por crédito</span>
+};
+
+<span class="cm">// ── Tipos de hora ──────────────────────────────────</span>
+<span class="kw">const</span> TIPO_HORA = {
+  HT:  <span class="str">'Horas Teóricas Presenciales'</span>,
+  HP:  <span class="str">'Horas Prácticas Presenciales'</span>,
+  HIV: <span class="str">'Horas de Interacción Virtual'</span>,
+  HPV: <span class="str">'Horas Prácticas Virtuales'</span>,
+  HI:  <span class="str">'Horas de Investigación'</span>,
+};
+
+<span class="cm">/**
+ * Calcula las horas de una asignatura según su
+ * distribución de créditos y modalidad.
+ * @param {object} asignatura
+ * @param {'presencial'|'semipresencial'|'virtual'} modalidad
+ * @returns {object} desglose de horas
+ */</span>
+<span class="kw">function</span> <span class="fn">calcularHoras</span>(asignatura, modalidad) {
+  <span class="kw">const</span> { creditosHT = <span class="num">0</span>, creditosHP = <span class="num">0</span>, creditosHI = <span class="num">0</span> } = asignatura;
+
+  <span class="kw">let</span> resultado = { HT:<span class="num">0</span>, HP:<span class="num">0</span>, HIV:<span class="num">0</span>, HPV:<span class="num">0</span>, HI:<span class="num">0</span>, total:<span class="num">0</span> };
+
+  <span class="kw">if</span> (modalidad === <span class="str">'presencial'</span>) {
+    resultado.HT = creditosHT * CR_BASE.HT_POR_CR;
+    resultado.HP = creditosHP * CR_BASE.HP_POR_CR;
+    resultado.HI = creditosHI * CR_BASE.HI_POR_CR;
+  }
+
+  <span class="kw">else if</span> (modalidad === <span class="str">'semipresencial'</span>) {
+    <span class="cm">// Presencial reducido + complemento virtual</span>
+    resultado.HT  = creditosHT * CR_BASE.HT_POR_CR * <span class="num">0.5</span>;
+    resultado.HP  = creditosHP * CR_BASE.HP_POR_CR * <span class="num">0.5</span>;
+    resultado.HIV = creditosHT * CR_BASE.HT_POR_CR * <span class="num">0.5</span>;
+    resultado.HI  = creditosHI * CR_BASE.HI_POR_CR;
+  }
+
+  <span class="kw">else if</span> (modalidad === <span class="str">'virtual'</span>) {
+    <span class="cm">// Sin presencial físico</span>
+    resultado.HIV = creditosHT * CR_BASE.HT_POR_CR;
+    resultado.HPV = creditosHP * CR_BASE.HP_POR_CR;
+    resultado.HI  = creditosHI * CR_BASE.HI_POR_CR;
+  }
+
+  resultado.total = Object.values(resultado)
+    .filter((_, i) => i &lt; <span class="num">5</span>)
+    .reduce((a, b) => a + b, <span class="num">0</span>);
+
+  <span class="kw">return</span> resultado;
+}
+
+<span class="cm">// ── Ejemplo de uso ─────────────────────────────────</span>
+<span class="kw">const</span> asig = { nombre: <span class="str">'Programación I'</span>, creditosHT: <span class="num">2</span>, creditosHP: <span class="num">1</span>, creditosHI: <span class="num">0</span> };
+console.log(<span class="fn">calcularHoras</span>(asig, <span class="str">'semipresencial'</span>));
+<span class="cm">// → { HT:15, HP:15, HIV:15, HPV:0, HI:0, total:45 }</span></pre>
+    </div>
+
+    <div id="code-py" style="display:none">
+<pre><span class="cm"># UASD — Algoritmo de Créditos (Python)
+# Conforme normativa MESCYT</span>
+
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Literal
+
+CR_BASE = {<span class="str">"HT"</span>: <span class="num">15</span>, <span class="str">"HP"</span>: <span class="num">30</span>, <span class="str">"HI"</span>: <span class="num">45</span>}
+Modalidad = Literal[<span class="str">"presencial"</span>, <span class="str">"semipresencial"</span>, <span class="str">"virtual"</span>]
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">Asignatura</span>:
+    codigo: str
+    nombre: str
+    creditos_HT: <span class="fn">float</span> = <span class="num">0</span>
+    creditos_HP: <span class="fn">float</span> = <span class="num">0</span>
+    creditos_HI: <span class="fn">float</span> = <span class="num">0</span>
+
+    <span class="kw">@property</span>
+    <span class="kw">def</span> <span class="fn">total_creditos</span>(self) -> <span class="fn">float</span>:
+        <span class="kw">return</span> self.creditos_HT + self.creditos_HP + self.creditos_HI
+
+<span class="kw">def</span> <span class="fn">calcular_horas</span>(a: Asignatura, modalidad: Modalidad) -> <span class="fn">dict</span>:
+    r = {<span class="str">"HT"</span>:<span class="num">0</span>, <span class="str">"HP"</span>:<span class="num">0</span>, <span class="str">"HIV"</span>:<span class="num">0</span>, <span class="str">"HPV"</span>:<span class="num">0</span>, <span class="str">"HI"</span>:<span class="num">0</span>}
+
+    <span class="kw">if</span> modalidad == <span class="str">"presencial"</span>:
+        r[<span class="str">"HT"</span>] = a.creditos_HT * CR_BASE[<span class="str">"HT"</span>]
+        r[<span class="str">"HP"</span>] = a.creditos_HP * CR_BASE[<span class="str">"HP"</span>]
+        r[<span class="str">"HI"</span>] = a.creditos_HI * CR_BASE[<span class="str">"HI"</span>]
+
+    <span class="kw">elif</span> modalidad == <span class="str">"semipresencial"</span>:
+        r[<span class="str">"HT"</span>]  = a.creditos_HT * CR_BASE[<span class="str">"HT"</span>] * <span class="num">0.5</span>
+        r[<span class="str">"HP"</span>]  = a.creditos_HP * CR_BASE[<span class="str">"HP"</span>] * <span class="num">0.5</span>
+        r[<span class="str">"HIV"</span>] = a.creditos_HT * CR_BASE[<span class="str">"HT"</span>] * <span class="num">0.5</span>
+        r[<span class="str">"HI"</span>]  = a.creditos_HI * CR_BASE[<span class="str">"HI"</span>]
+
+    <span class="kw">elif</span> modalidad == <span class="str">"virtual"</span>:
+        r[<span class="str">"HIV"</span>] = a.creditos_HT * CR_BASE[<span class="str">"HT"</span>]
+        r[<span class="str">"HPV"</span>] = a.creditos_HP * CR_BASE[<span class="str">"HP"</span>]
+        r[<span class="str">"HI"</span>]  = a.creditos_HI * CR_BASE[<span class="str">"HI"</span>]
+
+    r[<span class="str">"total"</span>] = <span class="fn">sum</span>(v <span class="kw">for</span> k, v <span class="kw">in</span> r.items() <span class="kw">if</span> k != <span class="str">"total"</span>)
+    <span class="kw">return</span> r
+
+<span class="cm"># Ejemplo</span>
+prog1 = Asignatura(<span class="str">"SIS101"</span>, <span class="str">"Programación I"</span>, creditos_HT=<span class="num">2</span>, creditos_HP=<span class="num">1</span>)
+<span class="fn">print</span>(<span class="fn">calcular_horas</span>(prog1, <span class="str">"virtual"</span>))
+<span class="cm"># → {'HT':0, 'HP':0, 'HIV':30, 'HPV':30, 'HI':0, 'total':60}</span></pre>
+    </div>
+
+    <div id="code-sql" style="display:none">
+<pre><span class="cm">-- UASD Plataforma Curricular — Schema Base de Datos
+-- Repositorio: uasd/pensum-platform</span>
+
+<span class="kw">CREATE TABLE</span> <span class="fn">carreras</span> (
+  id          <span class="kw">SERIAL PRIMARY KEY</span>,
+  codigo      <span class="fn">VARCHAR</span>(<span class="num">10</span>) <span class="kw">UNIQUE NOT NULL</span>,
+  nombre      <span class="fn">VARCHAR</span>(<span class="num">120</span>) <span class="kw">NOT NULL</span>,
+  facultad    <span class="fn">VARCHAR</span>(<span class="num">80</span>),
+  modalidad   <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="kw">CHECK</span> (modalidad <span class="kw">IN</span> (
+                <span class="str">'presencial'</span>,<span class="str">'semipresencial'</span>,<span class="str">'virtual'</span>)),
+  creditos_totales <span class="fn">SMALLINT</span>,
+  estado      <span class="fn">VARCHAR</span>(<span class="num">15</span>) <span class="kw">DEFAULT</span> <span class="str">'propuesta'</span>,
+  created_at  <span class="fn">TIMESTAMP DEFAULT NOW</span>()
+);
+
+<span class="kw">CREATE TABLE</span> <span class="fn">asignaturas</span> (
+  id          <span class="kw">SERIAL PRIMARY KEY</span>,
+  carrera_id  <span class="fn">INT REFERENCES</span> carreras(id),
+  codigo      <span class="fn">VARCHAR</span>(<span class="num">12</span>) <span class="kw">NOT NULL</span>,
+  nombre      <span class="fn">VARCHAR</span>(<span class="num">120</span>) <span class="kw">NOT NULL</span>,
+  semestre    <span class="fn">SMALLINT</span>,
+  cr_HT       <span class="fn">NUMERIC</span>(<span class="num">4</span>,<span class="num">1</span>) <span class="kw">DEFAULT</span> <span class="num">0</span>,
+  cr_HP       <span class="fn">NUMERIC</span>(<span class="num">4</span>,<span class="num">1</span>) <span class="kw">DEFAULT</span> <span class="num">0</span>,
+  cr_HI       <span class="fn">NUMERIC</span>(<span class="num">4</span>,<span class="num">1</span>) <span class="kw">DEFAULT</span> <span class="num">0</span>,
+  <span class="cm">-- Horas calculadas (desnormalizadas para consulta rápida)</span>
+  horas_HT    <span class="fn">NUMERIC</span>(<span class="num">6</span>,<span class="num">1</span>),
+  horas_HP    <span class="fn">NUMERIC</span>(<span class="num">6</span>,<span class="num">1</span>),
+  horas_HIV   <span class="fn">NUMERIC</span>(<span class="num">6</span>,<span class="num">1</span>),
+  horas_HPV   <span class="fn">NUMERIC</span>(<span class="num">6</span>,<span class="num">1</span>),
+  horas_HI    <span class="fn">NUMERIC</span>(<span class="num">6</span>,<span class="num">1</span>),
+  prerequisito_id <span class="fn">INT REFERENCES</span> asignaturas(id)
+);
+
+<span class="cm">-- Vista resumen de pensum por carrera</span>
+<span class="kw">CREATE VIEW</span> <span class="fn">v_pensum_resumen</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span>
+  c.nombre <span class="kw">AS</span> carrera,
+  c.modalidad,
+  <span class="fn">COUNT</span>(a.id) <span class="kw">AS</span> num_asignaturas,
+  <span class="fn">SUM</span>(a.cr_HT + a.cr_HP + a.cr_HI) <span class="kw">AS</span> total_creditos,
+  <span class="fn">SUM</span>(a.horas_HT)  <span class="kw">AS</span> total_HT,
+  <span class="fn">SUM</span>(a.horas_HP)  <span class="kw">AS</span> total_HP,
+  <span class="fn">SUM</span>(a.horas_HIV) <span class="kw">AS</span> total_HIV,
+  <span class="fn">SUM</span>(a.horas_HPV) <span class="kw">AS</span> total_HPV,
+  <span class="fn">SUM</span>(a.horas_HI)  <span class="kw">AS</span> total_HI
+<span class="kw">FROM</span> carreras c
+<span class="kw">JOIN</span> asignaturas a <span class="kw">ON</span> a.carrera_id = c.id
+<span class="kw">GROUP BY</span> c.id, c.nombre, c.modalidad;</pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ 04 PRUEBAS ═══════════════════════════════ -->
+  <section class="section" id="tab-pruebas">
+    <div class="page-band">
+      <div class="page-title">04 · <span>Pruebas</span> — Suite de Tests</div>
+      <div class="page-desc">Casos de prueba unitarios y de integración para el algoritmo de cálculo de horas/créditos.</div>
+    </div>
+
+    <div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+      <button class="btn-calc" style="width:auto; padding:.55rem 1.4rem;" onclick="runTests()">▶ Ejecutar Tests</button>
+      <div id="test-summary" style="font-size:.8rem; color:var(--muted);">— no ejecutados —</div>
+    </div>
+
+    <div class="test-suite" id="test-suite"></div>
+  </section>
+
+  <!-- ═══════════════════════════════ CALCULADORA ═══════════════════════════════ -->
+  <section class="section" id="tab-calc">
+    <div class="page-band">
+      <div class="page-title">∑ <span>Calculadora</span> de Horas</div>
+      <div class="page-desc">Ingrese los créditos de una asignatura y la modalidad para obtener el desglose completo de horas según normativa MESCYT.</div>
+    </div>
+
+    <div class="calc-grid">
+      <div class="calc-panel">
+        <h3>Parámetros de la Asignatura</h3>
+
+        <div class="form-row">
+          <label class="form-label">Nombre de la Asignatura</label>
+          <input class="form-input" id="c-nombre" type="text" placeholder="Ej: Programación I" value="Programación I">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Código</label>
+          <input class="form-input" id="c-codigo" type="text" placeholder="SIS101" value="SIS101">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Modalidad</label>
+          <select class="form-select" id="c-modal">
+            <option value="presencial">Presencial</option>
+            <option value="semipresencial">Semipresencial</option>
+            <option value="virtual">Virtual</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:.75rem; margin-bottom:1rem;">
+          <div class="form-row" style="margin:0">
+            <label class="form-label">Créd. HT</label>
+            <input class="form-input" id="c-ht" type="number" min="0" max="10" step="0.5" value="2">
+          </div>
+          <div class="form-row" style="margin:0">
+            <label class="form-label">Créd. HP</label>
+            <input class="form-input" id="c-hp" type="number" min="0" max="10" step="0.5" value="1">
+          </div>
+          <div class="form-row" style="margin:0">
+            <label class="form-label">Créd. HI</label>
+            <input class="form-input" id="c-hi" type="number" min="0" max="10" step="0.5" value="0">
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calcular()">Calcular Horas</button>
+      </div>
+
+      <div class="calc-panel">
+        <h3>Resultado del Cálculo</h3>
+        <div id="calc-result">
+          <div style="color:var(--muted); font-size:.8rem; text-align:center; padding:2rem 0;">
+            Ingrese los datos y presione Calcular
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── Navigation ─────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const map = {diagramas:0, disenos:1, codigos:2, pruebas:3, calc:4};
+  if (map[id] !== undefined) btns[map[id]].classList.add('active');
+  if (id === 'disenos') renderPensum();
+  if (id === 'pruebas') renderTestsShell();
+}
+
+function showCode(lang) {
+  ['js','py','sql'].forEach(l => {
+    document.getElementById('code-'+l).style.display = l===lang ? 'block' : 'none';
+  });
+  document.querySelectorAll('.code-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['js','py','sql'][i]===lang);
+  });
+}
+
+// ── Algorithm ──────────────────────────────────────
+const CR = { HT:15, HP:30, HI:45 };
+
+function calcularHoras(cHT, cHP, cHI, modal) {
+  let r = {HT:0, HP:0, HIV:0, HPV:0, HI:0};
+  if (modal === 'presencial') {
+    r.HT = cHT*CR.HT; r.HP = cHP*CR.HP; r.HI = cHI*CR.HI;
+  } else if (modal === 'semipresencial') {
+    r.HT  = cHT*CR.HT*0.5;
+    r.HP  = cHP*CR.HP*0.5;
+    r.HIV = cHT*CR.HT*0.5;
+    r.HI  = cHI*CR.HI;
+  } else {
+    r.HIV = cHT*CR.HT; r.HPV = cHP*CR.HP; r.HI = cHI*CR.HI;
+  }
+  r.total = r.HT+r.HP+r.HIV+r.HPV+r.HI;
+  return r;
+}
+
+// ── Calculator UI ──────────────────────────────────
+function calcular() {
+  const nombre = document.getElementById('c-nombre').value || 'Asignatura';
+  const codigo = document.getElementById('c-codigo').value || '---';
+  const modal  = document.getElementById('c-modal').value;
+  const cHT = +document.getElementById('c-ht').value;
+  const cHP = +document.getElementById('c-hp').value;
+  const cHI = +document.getElementById('c-hi').value;
+  const totalCR = cHT+cHP+cHI;
+
+  const r = calcularHoras(cHT, cHP, cHI, modal);
+
+  const labels = {HT:'Horas Teóricas',HP:'Horas Prácticas',HIV:'Horas Interac. Virtual',HPV:'Horas Práct. Virtuales',HI:'Horas Investigación'};
+  const colors = {HT:'#7fff6b',HP:'#7fff6b',HIV:'#00c8ff',HPV:'#00c8ff',HI:'#f5c842'};
+
+  const badgeClass = {presencial:'badge-pres',semipresencial:'badge-semi',virtual:'badge-virt'}[modal];
+  const badgeLabel = modal.toUpperCase();
+
+  let rows = '';
+  for (const k of ['HT','HP','HIV','HPV','HI']) {
+    if (r[k] === 0) continue;
+    const pct = Math.round(r[k]/r.total*100);
+    rows += `<tr>
+      <td style="color:${colors[k]}">${k}</td>
+      <td>${labels[k]}</td>
+      <td class="val">${r[k]}</td>
+      <td>
+        <div class="progress-bar" style="margin:0; width:80px">
+          <div class="progress-fill" style="width:${pct}%; background:${colors[k]}"></div>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  document.getElementById('calc-result').innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700;">${codigo} — ${nombre}</div>
+        <div style="color:var(--muted); font-size:.72rem;">Total: ${totalCR} crédito(s)</div>
+      </div>
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+    </div>
+    <table class="result-table">
+      <thead><tr><th>Tipo</th><th>Descripción</th><th>Horas</th><th>%</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr class="total"><td colspan="2">TOTAL HORAS</td><td class="val" colspan="2">${r.total} hrs</td></tr></tfoot>
+    </table>
+    <div class="chips">
+      <div class="chip">HT <span>${r.HT}</span></div>
+      <div class="chip">HP <span>${r.HP}</span></div>
+      <div class="chip">HIV <span>${r.HIV}</span></div>
+      <div class="chip">HPV <span>${r.HPV}</span></div>
+      <div class="chip">HI <span>${r.HI}</span></div>
+    </div>
+  `;
+}
+
+// ── Pensum data ────────────────────────────────────
+const PENSUM_DATA = [
+  {cod:'SIS101', nom:'Cálculo Diferencial',    sem:1, cHT:3, cHP:1, cHI:0},
+  {cod:'SIS102', nom:'Programación I',         sem:1, cHT:2, cHP:1, cHI:0},
+  {cod:'SIS103', nom:'Álgebra Lineal',         sem:1, cHT:3, cHP:0, cHI:0},
+  {cod:'SIS201', nom:'Programación II',        sem:2, cHT:2, cHP:1, cHI:0},
+  {cod:'SIS202', nom:'Estructuras de Datos',   sem:2, cHT:2, cHP:1, cHI:0},
+  {cod:'SIS203', nom:'Base de Datos I',        sem:3, cHT:2, cHP:1, cHI:0},
+  {cod:'SIS301', nom:'Redes I',                sem:3, cHT:2, cHP:1, cHI:0},
+  {cod:'SIS401', nom:'Ingeniería de Software', sem:4, cHT:3, cHP:0, cHI:1},
+  {cod:'SIS501', nom:'Proyecto de Grado',      sem:9, cHT:0, cHP:0, cHI:6},
+];
+
+function renderPensum() {
+  const modal = document.getElementById('sel-modal').value;
+  const badge = document.getElementById('modal-badge');
+  const labels = {presencial:'badge-pres',semipresencial:'badge-semi',virtual:'badge-virt'};
+  badge.className = 'badge '+labels[modal];
+  badge.textContent = modal.toUpperCase();
+
+  let rows = '', totHT=0,totHP=0,totHIV=0,totHPV=0,totHI=0,totCR=0,totHRS=0;
+
+  PENSUM_DATA.forEach((a,i) => {
+    const r = calcularHoras(a.cHT, a.cHP, a.cHI, modal);
+    const totalCR = a.cHT+a.cHP+a.cHI;
+    totHT+=r.HT; totHP+=r.HP; totHIV+=r.HIV; totHPV+=r.HPV; totHI+=r.HI;
+    totCR+=totalCR; totHRS+=r.total;
+    rows += `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="color:var(--accent); font-size:.72rem">${a.cod}</td>
+      <td>${a.nom}</td>
+      <td class="semestre">S${a.sem}</td>
+      <td class="num-cell">${totalCR}</td>
+      <td class="num-cell">${r.HT||'—'}</td>
+      <td class="num-cell">${r.HP||'—'}</td>
+      <td class="num-cell">${r.HIV||'—'}</td>
+      <td class="num-cell">${r.HPV||'—'}</td>
+      <td class="num-cell">${r.HI||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${r.total}</td>
+      <td><span class="badge ${labels[modal]}" style="font-size:.58rem">${modal.substring(0,4).toUpperCase()}</span></td>
+    </tr>`;
+  });
+
+  document.getElementById('pensum-body').innerHTML = rows;
+  document.getElementById('pensum-foot').innerHTML = `
+    <tr style="background:var(--surface2)">
+      <td colspan="4" style="font-family:'Syne',sans-serif; font-weight:700; color:var(--gold)">TOTALES</td>
+      <td class="num-cell" style="color:var(--gold)">${totCR}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHT||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHP||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHIV||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHPV||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHI||'—'}</td>
+      <td class="num-cell" style="color:var(--gold)">${totHRS}</td>
+      <td></td>
+    </tr>`;
+}
+
+function filterPensum() { renderPensum(); }
+
+// ── Tests ──────────────────────────────────────────
+const TEST_CASES = [
+  {
+    name:'CR Presencial — 1 crédito teórico',
+    desc:'1 créd HT en presencial → 15 HT, 0 HP, 0 HIV, total=15',
+    fn: () => {
+      const r = calcularHoras(1,0,0,'presencial');
+      return r.HT===15 && r.HP===0 && r.HIV===0 && r.total===15;
+    }
+  },
+  {
+    name:'CR Presencial — 1 crédito práctico',
+    desc:'1 créd HP en presencial → 30 HP, total=30',
+    fn: () => {
+      const r = calcularHoras(0,1,0,'presencial');
+      return r.HP===30 && r.total===30;
+    }
+  },
+  {
+    name:'CR Virtual — 2HT+1HP → solo HIV+HPV',
+    desc:'Virtual no debe tener HT ni HP físicas',
+    fn: () => {
+      const r = calcularHoras(2,1,0,'virtual');
+      return r.HT===0 && r.HP===0 && r.HIV===30 && r.HPV===30;
+    }
+  },
+  {
+    name:'CR Semipresencial — distribución 50/50',
+    desc:'2 créd HT semi → 15 HT + 15 HIV',
+    fn: () => {
+      const r = calcularHoras(2,0,0,'semipresencial');
+      return r.HT===15 && r.HIV===15 && r.HP===0;
+    }
+  },
+  {
+    name:'Total horas — suma coherente',
+    desc:'total == HT+HP+HIV+HPV+HI para cualquier combinación',
+    fn: () => {
+      const r = calcularHoras(2,1,1,'semipresencial');
+      return r.total === r.HT+r.HP+r.HIV+r.HPV+r.HI;
+    }
+  },
+  {
+    name:'HI — igual en todas las modalidades',
+    desc:'1 créd HI → 45 HI independiente de la modalidad',
+    fn: () => {
+      const rP = calcularHoras(0,0,1,'presencial');
+      const rS = calcularHoras(0,0,1,'semipresencial');
+      const rV = calcularHoras(0,0,1,'virtual');
+      return rP.HI===45 && rS.HI===45 && rV.HI===45;
+    }
+  },
+  {
+    name:'Créditos cero — resultado cero',
+    desc:'0 créditos en cualquier modalidad → todo 0',
+    fn: () => {
+      const r = calcularHoras(0,0,0,'virtual');
+      return r.total===0;
+    }
+  },
+  {
+    name:'Virtual — sin horas presenciales',
+    desc:'Modalidad virtual nunca debe tener HT ni HP',
+    fn: () => {
+      const r = calcularHoras(3,2,1,'virtual');
+      return r.HT===0 && r.HP===0;
+    }
+  },
+];
+
+function renderTestsShell() {
+  const suite = document.getElementById('test-suite');
+  suite.innerHTML = TEST_CASES.map((t,i) => `
+    <div class="test-case pending" id="tc-${i}">
+      <div class="test-status">⏳</div>
+      <div>
+        <div class="test-name">${t.name}</div>
+        <div class="test-desc">${t.desc}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('test-summary').textContent = '— presione Ejecutar —';
+}
+
+function runTests() {
+  let pass=0, fail=0;
+  TEST_CASES.forEach((t,i) => {
+    let ok = false;
+    try { ok = t.fn(); } catch(e) { ok = false; }
+    const el = document.getElementById('tc-'+i);
+    el.className = 'test-case '+(ok?'pass':'fail');
+    const icon = ok ? '✅' : '❌';
+    const status = el.querySelector('.test-status');
+    status.textContent = icon;
+    const result = el.querySelector('.test-result');
+    if (result) result.remove();
+    const msg = document.createElement('div');
+    msg.className = 'test-result'+(ok?'':' fail-msg');
+    msg.textContent = ok ? '→ PASS' : '→ FAIL — resultado inesperado';
+    el.appendChild(msg);
+    if(ok) pass++; else fail++;
+  });
+  const sumEl = document.getElementById('test-summary');
+  sumEl.innerHTML = `<span style="color:var(--accent3)">${pass} pasaron</span>  <span style="color:#ff4444">${fail} fallaron</span>  de ${TEST_CASES.length} tests`;
+}
+
+// Init
+renderTestsShell();
+renderPensum();
+</script>
+</body>
+</html>
